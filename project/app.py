@@ -20,7 +20,9 @@ st.sidebar.markdown(
     """
 <h1 style="font-size:30pt; float: left; margin-right: 20px; margin-top: 1px;">MiniTorch</h1>{}
 """.format(
-        get_img_tag("https://minitorch.github.io/_images/match.png", width="40")
+        get_img_tag(
+            "https://avatars.githubusercontent.com/u/69814924?s=200&v=4", width="40"
+        )
     ),
     unsafe_allow_html=True,
 )
