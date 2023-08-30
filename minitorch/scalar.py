@@ -176,10 +176,6 @@ class Scalar:
         # TODO: Implement for Task 1.3.
         derivatives = h.last_fn._backward(h.ctx, d_output)
 
-        print("!!!!!!!!!!!!!!!!!!!!!!")
-        print(type(h.inputs))
-        print(type(derivatives))
-
         return [
             (h.inputs[i], derivatives[i])
             for i in range(len(h.inputs))
