@@ -1,5 +1,5 @@
 from dataclasses import dataclass
-from typing import Any, Iterable, List, Tuple
+from typing import Any, Dict, Iterable, List, Tuple
 
 from typing_extensions import Protocol
 
@@ -23,11 +23,11 @@ def central_difference(f: Any, *vals: Any, arg: int = 0, epsilon: float = 1e-6) 
         An approximation of $f'_i(x_0, \ldots, x_{n-1})$
     """
     # TODO: Implement for Task 1.1.
-    vals: Iterable[Any] = list(vals)
-    vals[arg] += epsilon
-    func_val1: Any = f(*vals)
-    vals[arg] -= 2 * epsilon
-    func_val2: Any = f(*vals)
+    vals_list: List[Any] = list(vals)
+    vals_list[arg] += epsilon
+    func_val1: Any = f(*vals_list)
+    vals_list[arg] -= 2 * epsilon
+    func_val2: Any = f(*vals_list)
 
     return (func_val1 - func_val2) / (2 * epsilon)
 
@@ -68,13 +68,13 @@ def topological_sort(variable: Variable) -> Iterable[Variable]:
         Non-constant Variables in topological order starting from the right.
     """
     # TODO: Implement for Task 1.4.
-    order: Iterable[Variable] = []
+    order: List[Variable] = []
     visited: List[int] = []
     dfs(variable, visited, order)
     return order
 
 
-def dfs(variable: Variable, visited: List[Variable], order: Iterable[Variable]) -> None:
+def dfs(variable: Variable, visited: List[int], order: List[Variable]) -> None:
     """
     Depth-first search for topological sort.
 
@@ -91,6 +91,7 @@ def dfs(variable: Variable, visited: List[Variable], order: Iterable[Variable]) 
             dfs(parent, visited, order)
     visited.append(variable.unique_id)
     order.insert(0, variable)
+    # order = (variable,) + order
 
 
 def backpropagate(variable: Variable, deriv: Any) -> None:
@@ -106,8 +107,7 @@ def backpropagate(variable: Variable, deriv: Any) -> None:
     """
     # TODO: Implement for Task 1.4.
     ordered_vars: Iterable[Variable] = topological_sort(variable)
-    # Create a dictionary to store the derivative of each variable
-    deriv_dict: dict = {var.unique_id: 0 for var in ordered_vars}
+    deriv_dict: Dict[int, Any] = {var.unique_id: 0 for var in ordered_vars}
     deriv_dict[variable.unique_id] = deriv
 
     for var in ordered_vars:

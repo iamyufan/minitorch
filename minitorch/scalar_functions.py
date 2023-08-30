@@ -128,8 +128,8 @@ class Inv(ScalarFunction):
     @staticmethod
     def backward(ctx: Context, d_output: float) -> float:
         # TODO: Implement for Task 1.4.
-        a = unwrap_tuple(ctx.saved_values)
-        return wrap_tuple(operators.inv_back(a, d_output))
+        a = unwrap_tuple(ctx.saved_values)  # type: ignore
+        return operators.inv_back(a, d_output)
 
 
 class Neg(ScalarFunction):
@@ -144,7 +144,7 @@ class Neg(ScalarFunction):
     def backward(ctx: Context, d_output: float) -> float:
         # TODO: Implement for Task 1.4.
         # The derivative of -x with respect to x is -1.
-        return wrap_tuple(-d_output)
+        return -d_output
 
 
 class Sigmoid(ScalarFunction):
@@ -161,8 +161,8 @@ class Sigmoid(ScalarFunction):
     def backward(ctx: Context, d_output: float) -> float:
         # TODO: Implement for Task 1.4.
         # The derivative of sigmoid(x) with respect to x is sigmoid(x) * (1 - sigmoid(x)).
-        sig = unwrap_tuple(ctx.saved_values)
-        return wrap_tuple(sig * (1 - sig) * d_output)
+        sig: float = unwrap_tuple(ctx.saved_values)  # type: ignore
+        return sig * (1 - sig) * d_output
 
 
 class ReLU(ScalarFunction):
@@ -177,8 +177,8 @@ class ReLU(ScalarFunction):
     @staticmethod
     def backward(ctx: Context, d_output: float) -> float:
         # TODO: Implement for Task 1.4.
-        a = unwrap_tuple(ctx.saved_values)
-        return wrap_tuple(operators.relu_back(a, d_output))
+        a = unwrap_tuple(ctx.saved_values)  # type: ignore
+        return operators.relu_back(a, d_output)
 
 
 class Exp(ScalarFunction):
@@ -195,8 +195,8 @@ class Exp(ScalarFunction):
     def backward(ctx: Context, d_output: float) -> float:
         # TODO: Implement for Task 1.4.
         # The derivative of exp(x) with respect to x is exp(x).
-        ex = unwrap_tuple(ctx.saved_values)
-        return wrap_tuple(ex * d_output)
+        ex: float = unwrap_tuple(ctx.saved_values)  # type: ignore
+        return ex * d_output
 
 
 class LT(ScalarFunction):

@@ -18,7 +18,6 @@ from .scalar_functions import (
     ReLU,
     ScalarFunction,
     Sigmoid,
-    wrap_tuple,
 )
 
 ScalarLike = Union[float, int, "Scalar"]
@@ -175,23 +174,17 @@ class Scalar:
         assert h.ctx is not None
 
         # TODO: Implement for Task 1.3.
-        derivatives = h.last_fn.backward(h.ctx, d_output)
+        derivatives = h.last_fn._backward(h.ctx, d_output)
 
         print("!!!!!!!!!!!!!!!!!!!!!!")
         print(type(h.inputs))
         print(type(derivatives))
 
         return [
-            (var, deriv)
-            for var, deriv in zip(h.inputs, wrap_tuple(derivatives))
-            if not var.is_constant()
+            (h.inputs[i], derivatives[i])
+            for i in range(len(h.inputs))
+            if not h.inputs[i].is_constant()
         ]
-
-        # return [
-        #     (h.inputs[i], derivatives[i])
-        #     for i in range(len(h.inputs))
-        #     if not h.inputs[i].is_constant()
-        # ]
 
     def backward(self, d_output: Optional[float] = None) -> None:
         """

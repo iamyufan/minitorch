@@ -1,3 +1,4 @@
+altair==4.0
 colorama==0.4.3
 hypothesis == 6.54
 mypy == 0.971
@@ -8,4 +9,3 @@ pytest == 7.1.2
 pytest-env
 pytest-runner == 5.2
 typing_extensions
-altair==4.0

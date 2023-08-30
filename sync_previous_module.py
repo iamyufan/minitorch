@@ -38,7 +38,7 @@ dest = sys.argv[2]
 # copy the files from source to destination
 try:
     for file in files_to_move:
-        print(f"Moving file : ", file)
+        print(f"Moving file : {file}")
         shutil.copy(
             os.path.join(grandparent_path, source, file),
             os.path.join(grandparent_path, dest, file),
@@ -46,5 +46,6 @@ try:
     print(f"Finished moving {len(files_to_move)} files")
 except Exception as e:
     print(
-        "Something went wrong! please check if the source and destination folders are present in same folder"
+        "Something went wrong! please check if the source and destination folders are present in same folder",
+        e,
     )
