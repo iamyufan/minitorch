@@ -1,4 +1,4 @@
-# MiniTorch Module 1
+# miniTorch
 
 <img src="https://minitorch.github.io/minitorch.svg" width="50%">
 
