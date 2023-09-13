@@ -78,7 +78,6 @@ class Add(ScalarFunction):
 
     @staticmethod
     def backward(ctx: Context, d_output: float) -> Tuple[float, ...]:
-        # The derivative of x + y with respect to x is 1 and with respect to y is 1.
         return d_output, d_output
 
 
@@ -112,7 +111,7 @@ class Mul(ScalarFunction):
     def backward(ctx: Context, d_output: float) -> Tuple[float, float]:
         # TODO: Implement for Task 1.4.
         # The derivative of x * y with respect to x is y and with respect to y is x.
-        a, b = ctx.saved_values
+        (a, b) = ctx.saved_values
         return b * d_output, a * d_output
 
 
@@ -128,7 +127,7 @@ class Inv(ScalarFunction):
     @staticmethod
     def backward(ctx: Context, d_output: float) -> float:
         # TODO: Implement for Task 1.4.
-        a = unwrap_tuple(ctx.saved_values)  # type: ignore
+        (a,) = ctx.saved_values
         return operators.inv_back(a, d_output)
 
 
@@ -161,8 +160,9 @@ class Sigmoid(ScalarFunction):
     def backward(ctx: Context, d_output: float) -> float:
         # TODO: Implement for Task 1.4.
         # The derivative of sigmoid(x) with respect to x is sigmoid(x) * (1 - sigmoid(x)).
-        sig: float = unwrap_tuple(ctx.saved_values)  # type: ignore
-        return sig * (1 - sig) * d_output
+        (sig,) = ctx.saved_values
+        result: float = sig * (1 - sig) * d_output
+        return result
 
 
 class ReLU(ScalarFunction):
@@ -177,7 +177,8 @@ class ReLU(ScalarFunction):
     @staticmethod
     def backward(ctx: Context, d_output: float) -> float:
         # TODO: Implement for Task 1.4.
-        a = unwrap_tuple(ctx.saved_values)  # type: ignore
+        # The derivative of exp(x) with respect to x is exp(x).
+        (a,) = ctx.saved_values
         return operators.relu_back(a, d_output)
 
 
@@ -187,16 +188,17 @@ class Exp(ScalarFunction):
     @staticmethod
     def forward(ctx: Context, a: float) -> float:
         # TODO: Implement for Task 1.2.
-        ex = operators.exp(a)
-        ctx.save_for_backward(ex)
-        return ex
+        exp = operators.exp(a)
+        ctx.save_for_backward(exp)
+        return exp
 
     @staticmethod
     def backward(ctx: Context, d_output: float) -> float:
         # TODO: Implement for Task 1.4.
-        # The derivative of exp(x) with respect to x is exp(x).
-        ex: float = unwrap_tuple(ctx.saved_values)  # type: ignore
-        return ex * d_output
+        # The derivative of x < y with respect to x is 0 and with respect to y is 0.
+        (exp,) = ctx.saved_values
+        result: float = exp * d_output
+        return result
 
 
 class LT(ScalarFunction):

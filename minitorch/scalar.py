@@ -174,7 +174,7 @@ class Scalar:
         assert h.ctx is not None
 
         # TODO: Implement for Task 1.3.
-        derivatives = h.last_fn._backward(h.ctx, d_output)
+        derivatives: Tuple[float, ...] = h.last_fn._backward(ctx=h.ctx, d_out=d_output)
 
         return [
             (h.inputs[i], derivatives[i])

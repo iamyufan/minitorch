@@ -24,12 +24,14 @@ def central_difference(f: Any, *vals: Any, arg: int = 0, epsilon: float = 1e-6) 
     """
     # TODO: Implement for Task 1.1.
     vals_list: List[Any] = list(vals)
-    vals_list[arg] += epsilon
-    func_val1: Any = f(*vals_list)
-    vals_list[arg] -= 2 * epsilon
-    func_val2: Any = f(*vals_list)
 
-    return (func_val1 - func_val2) / (2 * epsilon)
+    vals_list[arg] += epsilon
+    f_val_1: Any = f(*vals_list)
+
+    vals_list[arg] -= 2 * epsilon
+    f_val_2: Any = f(*vals_list)
+
+    return (f_val_1 - f_val_2) / (2 * epsilon)
 
 
 variable_count = 1
@@ -68,30 +70,28 @@ def topological_sort(variable: Variable) -> Iterable[Variable]:
         Non-constant Variables in topological order starting from the right.
     """
     # TODO: Implement for Task 1.4.
-    order: List[Variable] = []
+    ordered_vars: List[Variable] = []
     visited: List[int] = []
-    dfs(variable, visited, order)
-    return order
+    dfs(variable, visited, ordered_vars)
+    return ordered_vars
 
 
-def dfs(variable: Variable, visited: List[int], order: List[Variable]) -> None:
+def dfs(variable: Variable, visited: List[int], ordered_vars: List[Variable]) -> None:
     """
-    Depth-first search for topological sort.
+    Depth-first search for topological sort
 
     Args:
         variable (Variable): The right-most variable
-        visited (List[Variable]): List of visited variables
-        order (Iterable[Variable]): Non-constant Variables in topological order starting from the right.
+        visited (List[int]): List of visited variables
+        ordered_vars (List[Variable]): Non-constant Variables in topological order starting from the right.
     """
-
     if variable.unique_id in visited:
         return
     if not variable.is_leaf():
         for parent in variable.parents:
-            dfs(parent, visited, order)
+            dfs(parent, visited, ordered_vars)
     visited.append(variable.unique_id)
-    order.insert(0, variable)
-    # order = (variable,) + order
+    ordered_vars.insert(0, variable)
 
 
 def backpropagate(variable: Variable, deriv: Any) -> None:
