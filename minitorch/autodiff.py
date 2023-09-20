@@ -70,28 +70,20 @@ def topological_sort(variable: Variable) -> Iterable[Variable]:
         Non-constant Variables in topological order starting from the right.
     """
     # TODO: Implement for Task 1.4.
-    ordered_vars: List[Variable] = []
     visited: List[int] = []
-    dfs(variable, visited, ordered_vars)
+    ordered_vars: List[Variable] = []
+
+    def dfs(var: Variable) -> None:
+        if var.is_constant() or var.unique_id in visited:
+            return
+        if not var.is_leaf():
+            for input in var.parents:
+                dfs(input)
+        visited.append(var.unique_id)
+        ordered_vars.insert(0, var)
+
+    dfs(variable)
     return ordered_vars
-
-
-def dfs(variable: Variable, visited: List[int], ordered_vars: List[Variable]) -> None:
-    """
-    Depth-first search for topological sort
-
-    Args:
-        variable (Variable): The right-most variable
-        visited (List[int]): List of visited variables
-        ordered_vars (List[Variable]): Non-constant Variables in topological order starting from the right.
-    """
-    if variable.unique_id in visited:
-        return
-    if not variable.is_leaf():
-        for parent in variable.parents:
-            dfs(parent, visited, ordered_vars)
-    visited.append(variable.unique_id)
-    ordered_vars.insert(0, variable)
 
 
 def backpropagate(variable: Variable, deriv: Any) -> None:

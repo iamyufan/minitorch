@@ -6,8 +6,7 @@ import numpy as np
 from typing_extensions import Protocol
 
 from . import operators
-from .tensor_data import (
-    MAX_DIMS,
+from .tensor_data import (  # MAX_DIMS,
     broadcast_index,
     index_to_position,
     shape_broadcast,
@@ -47,7 +46,7 @@ class TensorOps:
     def matrix_multiply(a: Tensor, b: Tensor) -> Tensor:
         raise NotImplementedError("Not implemented in this assignment")
 
-    cuda = False
+    cuda: bool = False
 
 
 class TensorBackend:
@@ -269,7 +268,16 @@ def tensor_map(fn: Callable[[float], float]) -> Any:
         in_strides: Strides,
     ) -> None:
         # TODO: Implement for Task 2.3.
-        raise NotImplementedError("Need to implement for Task 2.3")
+        out_index: Index = np.array(out_shape)
+        in_index: Index = np.array(in_shape)
+        for i in range(len(out)):
+            to_index(i, out_shape, out_index)
+            # out_index is now the index of the current element in out
+            broadcast_index(out_index, out_shape, in_shape, in_index)
+            # in_index is now the index of the current element in in
+            data: np.float64 = in_storage[index_to_position(in_index, in_strides)]
+            mapped_data: np.float64 = fn(data)
+            out[index_to_position(out_index, out_strides)] = mapped_data
 
     return _map
 
@@ -319,7 +327,20 @@ def tensor_zip(fn: Callable[[float, float], float]) -> Any:
         b_strides: Strides,
     ) -> None:
         # TODO: Implement for Task 2.3.
-        raise NotImplementedError("Need to implement for Task 2.3")
+        out_index: Index = np.array(out_shape)
+        a_index: Index = np.array(a_shape)
+        b_index: Index = np.array(b_shape)
+        for i in range(len(out)):
+            to_index(i, out_shape, out_index)
+            # out_index is now the index of the current element in out
+            broadcast_index(out_index, out_shape, a_shape, a_index)
+            # a_index is now the index of the current element in a
+            broadcast_index(out_index, out_shape, b_shape, b_index)
+            # b_index is now the index of the current element in b
+            a_data: np.float64 = a_storage[index_to_position(a_index, a_strides)]
+            b_data: np.float64 = b_storage[index_to_position(b_index, b_strides)]
+            zipped_data: np.float64 = fn(a_data, b_data)
+            out[index_to_position(out_index, out_strides)] = zipped_data
 
     return _zip
 
@@ -355,7 +376,15 @@ def tensor_reduce(fn: Callable[[float, float], float]) -> Any:
         reduce_dim: int,
     ) -> None:
         # TODO: Implement for Task 2.3.
-        raise NotImplementedError("Need to implement for Task 2.3")
+        out_index: Index = np.array(out_shape)
+        for i in range(len(out)):
+            to_index(i, out_shape, out_index)
+            o_index: int = index_to_position(out_index, out_strides)
+            for j in range(a_shape[reduce_dim]):
+                a_index: Index = out_index.copy()
+                a_index[reduce_dim] = j
+                a_data: np.float64 = a_storage[index_to_position(a_index, a_strides)]
+                out[o_index] = fn(a_data, out[o_index])
 
     return _reduce
 

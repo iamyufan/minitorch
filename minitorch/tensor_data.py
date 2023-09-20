@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import random
-from typing import Iterable, Optional, Sequence, Tuple, Union
+from typing import Iterable, List, Optional, Sequence, Tuple, Union
 
 import numba
 import numpy as np
@@ -96,9 +96,6 @@ def broadcast_index(
         big_shape : tensor shape of bigger tensor
         shape : tensor shape of smaller tensor
         out_index : multidimensional index of smaller tensor
-
-    Returns:
-        None
     """
     # TODO: Implement for Task 2.2.
     dim_diff: int = len(big_shape) - len(shape)
@@ -126,7 +123,7 @@ def shape_broadcast(shape1: UserShape, shape2: UserShape) -> UserShape:
     else:
         shape1 = [1 for _ in range(len(shape2) - len(shape1))] + list(shape1)
     # Now, shape1 and shape2 have the same dimension.
-    n_shape: Iterable[int] = []
+    n_shape: List[int] = []
     for i in range(len(shape1)):
         if shape1[i] != shape2[i]:
             if shape1[i] == 1:
