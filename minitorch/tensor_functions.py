@@ -429,11 +429,8 @@ def grad_check(f: Any, *vals: Tensor) -> None:
     for x in vals:
         x.requires_grad_(True)
         x.zero_grad_()
-        # print(x.history)
-        # print(x.is_leaf())
     random.seed(10)
     out = f(*vals)
-    # print(out.is_leaf())
     out.sum().backward()
     err_msg = """
 

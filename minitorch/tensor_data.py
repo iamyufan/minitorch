@@ -44,12 +44,6 @@ def index_to_position(index: Index, strides: Strides) -> int:
     """
 
     # TODO: Implement for Task 2.1.
-    # For example, if we have a 2x2 tensor:
-    # (1, 2,
-    #  3, 4)
-    # the strides are [2, 1]
-    # the index [1, 0] should return 2.
-    # the index [0, 1] should return 1.
     pos: int = 0
     for i, val in enumerate(index):
         pos += val * strides[i]
@@ -70,12 +64,6 @@ def to_index(ordinal: int, shape: Shape, out_index: OutIndex) -> None:
 
     """
     # TODO: Implement for Task 2.1.
-    # For example, if we have a 2x2 tensor:
-    # (1, 2,
-    #  3, 4)
-    # the strides are [2, 1] and the shape is [2, 2]
-    # the ordinal 0 should return [0, 0]
-    # the ordinal 1 should return [0, 1]
     for i in range(len(shape) - 1, -1, -1):
         out_index[i] = ordinal % shape[i]
         ordinal = ordinal // shape[i]
@@ -96,6 +84,9 @@ def broadcast_index(
         big_shape : tensor shape of bigger tensor
         shape : tensor shape of smaller tensor
         out_index : multidimensional index of smaller tensor
+
+    # Returns:
+    #     None
     """
     # TODO: Implement for Task 2.2.
     dim_diff: int = len(big_shape) - len(shape)
@@ -118,6 +109,7 @@ def shape_broadcast(shape1: UserShape, shape2: UserShape) -> UserShape:
         IndexingError : if cannot broadcast
     """
     # TODO: Implement for Task 2.2.
+    # Rule 3: extra dimensions of 1 can be implicitly added to the left of the shape.
     if len(shape1) > len(shape2):
         shape2 = [1 for _ in range(len(shape1) - len(shape2))] + list(shape2)
     else:
@@ -126,6 +118,7 @@ def shape_broadcast(shape1: UserShape, shape2: UserShape) -> UserShape:
     n_shape: List[int] = []
     for i in range(len(shape1)):
         if shape1[i] != shape2[i]:
+            # Rule 1: dimension of size 1 broadcasts with anything
             if shape1[i] == 1:
                 n_shape.append(shape2[i])
             elif shape2[i] == 1:
