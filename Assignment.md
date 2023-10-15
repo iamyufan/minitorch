@@ -6,7 +6,7 @@ This sections contains the Task 5 of each module.
 
 Hand-create classifiers result
 
-![task0-5-result](./img/m0/m0-task0-5.png)
+![task0-5-result](./img/m0/result.png)
 
 Parameters
 
@@ -14,7 +14,7 @@ Parameters
 | --------- | ----------------- | ----------------- | ------------- |
 | parameter | -8.14             | 2.57              | 2.26          |
 
-![task0-5-para](./img/m0/m0-task0-5-1.png)
+![task0-5-para](./img/m0/parameters.png)
 
 ## Module 1 Automatic Differentiation: Training
 
