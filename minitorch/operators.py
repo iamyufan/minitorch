@@ -71,7 +71,10 @@ def sigmoid(x: float) -> float:
     for stability.
     """
     # TODO: Implement for Task 0.1.
-    return 1.0 / (1.0 + exp(-x))
+    if x >= 0:
+        return 1.0 / (1.0 + exp(-x))
+    else:
+        return math.exp(x) / (1.0 + exp(x))
 
 
 def relu(x: float) -> float:
@@ -100,7 +103,6 @@ def exp(x: float) -> float:
 def log_back(x: float, d: float) -> float:
     r"If $f = log$ as above, compute $d \times f'(x)$"
     # TODO: Implement for Task 0.1.
-    # return d * (exp(x))
     return d / (x + EPS)
 
 
@@ -113,14 +115,13 @@ def inv(x: float) -> float:
 def inv_back(x: float, d: float) -> float:
     r"If $f(x) = 1/x$ compute $d \times f'(x)$"
     # TODO: Implement for Task 0.1.
-    # return d * (1.0 / x)
     return -d / (x * x)
 
 
 def relu_back(x: float, d: float) -> float:
     r"If $f = relu$ compute $d \times f'(x)$"
     # TODO: Implement for Task 0.1.
-    return d if x > 0 else 0
+    return d if x > 0 else 0.0
 
 
 # ## Task 0.3
@@ -173,10 +174,12 @@ def zipWith(
     """
 
     # TODO: Implement for Task 0.3.
-    def mapper(ls1: Iterable[float], ls2: Iterable[float]) -> Iterable[float]:
-        return [fn(x, y) for x, y in zip(ls1, ls2)]
+    def zipper(
+        iterable1: Iterable[float], iterable2: Iterable[float]
+    ) -> Iterable[float]:
+        return [fn(item1, item2) for item1, item2 in zip(iterable1, iterable2)]
 
-    return mapper
+    return zipper
 
 
 def addLists(ls1: Iterable[float], ls2: Iterable[float]) -> Iterable[float]:
@@ -202,9 +205,9 @@ def reduce(
     """
 
     # TODO: Implement for Task 0.3.
-    def reducer(ls: Iterable[float]) -> float:
+    def reducer(iterable: Iterable[float]) -> float:
         result = start
-        for item in ls:
+        for item in iterable:
             result = fn(item, result)
         return result
 
