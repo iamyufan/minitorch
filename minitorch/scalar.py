@@ -176,11 +176,7 @@ class Scalar:
         # TODO: Implement for Task 1.3.
         derivatives: Tuple[float, ...] = h.last_fn._backward(ctx=h.ctx, d_out=d_output)
 
-        return [
-            (h.inputs[i], derivatives[i])
-            for i in range(len(h.inputs))
-            if not h.inputs[i].is_constant()
-        ]
+        return list(zip(h.inputs, derivatives))
 
     def backward(self, d_output: Optional[float] = None) -> None:
         """

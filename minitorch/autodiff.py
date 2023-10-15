@@ -23,15 +23,13 @@ def central_difference(f: Any, *vals: Any, arg: int = 0, epsilon: float = 1e-6) 
         An approximation of $f'_i(x_0, \ldots, x_{n-1})$
     """
     # TODO: Implement for Task 1.1.
-    vals_list: List[Any] = list(vals)
+    x_vals_1: List[Any] = list(vals)
+    x_vals_1[arg] = x_vals_1[arg] + epsilon
 
-    vals_list[arg] += epsilon
-    f_val_1: Any = f(*vals_list)
+    x_vals_2: List[Any] = list(vals)
+    x_vals_2[arg] = x_vals_2[arg] - epsilon
 
-    vals_list[arg] -= 2 * epsilon
-    f_val_2: Any = f(*vals_list)
-
-    return (f_val_1 - f_val_2) / (2 * epsilon)
+    return (f(*x_vals_1) - f(*x_vals_2)) / (2 * epsilon)
 
 
 variable_count = 1
@@ -70,19 +68,19 @@ def topological_sort(variable: Variable) -> Iterable[Variable]:
         Non-constant Variables in topological order starting from the right.
     """
     # TODO: Implement for Task 1.4.
-    visited: List[int] = []
-    ordered_vars: List[Variable] = []
+    visited: List[int] = list()
+    ordered_vars: List[Variable] = list()
 
-    def dfs(var: Variable) -> None:
-        if var.is_constant() or var.unique_id in visited:
+    def visit(variable: Variable) -> None:
+        if variable.is_constant() or variable.unique_id in visited:
             return
-        if not var.is_leaf():
-            for input in var.parents:
-                dfs(input)
-        visited.append(var.unique_id)
-        ordered_vars.insert(0, var)
+        if not variable.is_leaf():
+            for input_var in variable.parents:
+                visit(input_var)
+        visited.append(variable.unique_id)
+        ordered_vars.insert(0, variable)
 
-    dfs(variable)
+    visit(variable)
     return ordered_vars
 
 
@@ -99,18 +97,20 @@ def backpropagate(variable: Variable, deriv: Any) -> None:
     """
     # TODO: Implement for Task 1.4.
     ordered_vars: Iterable[Variable] = topological_sort(variable)
-    deriv_dict: Dict[int, Any] = {var.unique_id: 0 for var in ordered_vars}
-    deriv_dict[variable.unique_id] = deriv
+    derivatives: Dict[int, Any] = {var.unique_id: 0 for var in ordered_vars}
+    derivatives[variable.unique_id] = deriv
 
     for var in ordered_vars:
         if var.is_leaf():
-            var.accumulate_derivative(deriv_dict[var.unique_id])
+            var.accumulate_derivative(derivatives[var.unique_id])
         else:
-            for parent, deriv in var.chain_rule(deriv_dict[var.unique_id]):
-                if parent.unique_id in deriv_dict:
-                    deriv_dict[parent.unique_id] += deriv
+            for parent_var, deriv in var.chain_rule(derivatives[var.unique_id]):
+                if parent_var.is_constant():
+                    continue
+                if parent_var.unique_id in derivatives:
+                    derivatives[parent_var.unique_id] += deriv
                 else:
-                    deriv_dict[parent.unique_id] = deriv
+                    derivatives[parent_var.unique_id] = deriv
 
 
 @dataclass
