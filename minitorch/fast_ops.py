@@ -277,8 +277,9 @@ def tensor_reduce(
         reduce_dim: int,
     ) -> None:
         # TODO: Implement for Task 3.1.
-        out_index: Index = np.zeros_like(out_shape, dtype=np.int32)
         for i in prange(len(out)):
+            # All indices use numpy buffers
+            out_index: Index = np.zeros_like(out_shape, dtype=np.int32)
             # Find the index of the corresponding element in out
             to_index(i, out_shape, out_index)
             out_ordinal: int = index_to_position(out_index, out_strides)
