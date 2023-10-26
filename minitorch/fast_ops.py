@@ -167,9 +167,10 @@ def tensor_map(
             for i in prange(len(out)):
                 out[i] = fn(in_storage[i])
         else:
-            out_index: Index = np.zeros_like(out_shape, dtype=np.int32)
-            in_index: Index = np.zeros_like(in_shape, dtype=np.int32)
             for i in prange(len(out)):
+                # All indices use numpy buffers
+                out_index: Index = np.zeros_like(out_shape, dtype=np.int32)
+                in_index: Index = np.zeros_like(in_shape, dtype=np.int32)
                 # Find the index of the corresponding element in in and out
                 to_index(i, out_shape, out_index)
                 broadcast_index(out_index, out_shape, in_shape, in_index)
@@ -227,10 +228,11 @@ def tensor_zip(
             for i in prange(len(out)):
                 out[i] = fn(a_storage[i], b_storage[i])
         else:
-            out_index: Index = np.zeros_like(out_shape, dtype=np.int32)
-            a_index: Index = np.zeros_like(a_shape, dtype=np.int32)
-            b_index: Index = np.zeros_like(b_shape, dtype=np.int32)
             for i in prange(len(out)):
+                # All indices use numpy buffers
+                out_index: Index = np.zeros_like(out_shape, dtype=np.int32)
+                a_index: Index = np.zeros_like(a_shape, dtype=np.int32)
+                b_index: Index = np.zeros_like(b_shape, dtype=np.int32)
                 # Find the index of the corresponding element in out, a, and b
                 to_index(i, out_shape, out_index)
                 broadcast_index(out_index, out_shape, a_shape, a_index)
