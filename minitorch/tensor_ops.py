@@ -6,7 +6,7 @@ import numpy as np
 from typing_extensions import Protocol
 
 from . import operators
-from .tensor_data import (  # MAX_DIMS,
+from .tensor_data import (
     broadcast_index,
     index_to_position,
     shape_broadcast,
@@ -268,17 +268,15 @@ def tensor_map(fn: Callable[[float], float]) -> Any:
         in_strides: Strides,
     ) -> None:
         # TODO: Implement for Task 2.3.
-        out_index: Index = np.array(out_shape)
-        in_index: Index = np.array(in_shape)
+        out_index: Index = np.zeros_like(out_shape, dtype=np.int32)
+        in_index: Index = np.zeros_like(in_shape, dtype=np.int32)
         for i in range(len(out)):
             # Find the index of the corresponding element in in and out
             to_index(i, out_shape, out_index)
             broadcast_index(out_index, out_shape, in_shape, in_index)
             # Get the data from in and apply fn to it
-            data: np.float64 = in_storage[index_to_position(in_index, in_strides)]
-            mapped_data: float = fn(float(data))
-            # Store the result in out
-            out[index_to_position(out_index, out_strides)] = mapped_data
+            mapped_data: float = fn(in_storage[index_to_position(in_index, in_strides)])
+            out[i] = mapped_data
 
     return _map
 
@@ -328,9 +326,9 @@ def tensor_zip(fn: Callable[[float, float], float]) -> Any:
         b_strides: Strides,
     ) -> None:
         # TODO: Implement for Task 2.3.
-        out_index: Index = np.array(out_shape)
-        a_index: Index = np.array(a_shape)
-        b_index: Index = np.array(b_shape)
+        out_index: Index = np.zeros_like(out_shape, dtype=np.int32)
+        a_index: Index = np.zeros_like(a_shape, dtype=np.int32)
+        b_index: Index = np.zeros_like(b_shape, dtype=np.int32)
         for i in range(len(out)):
             # Find the index of the corresponding position in a and b
             to_index(i, out_shape, out_index)
@@ -341,7 +339,7 @@ def tensor_zip(fn: Callable[[float, float], float]) -> Any:
             b_data: np.float64 = b_storage[index_to_position(b_index, b_strides)]
             zipped_data: float = fn(float(a_data), float(b_data))
             # Store the result in out
-            out[index_to_position(out_index, out_strides)] = zipped_data
+            out[i] = zipped_data
 
     return _zip
 
@@ -377,15 +375,16 @@ def tensor_reduce(fn: Callable[[float, float], float]) -> Any:
         reduce_dim: int,
     ) -> None:
         # TODO: Implement for Task 2.3.
-        out_index: Index = np.array(out_shape)
+        out_index: Index = np.zeros_like(out_shape, dtype=np.int32)
         for i in range(len(out)):
+            # Get the index of the corresponding element in out
             to_index(i, out_shape, out_index)
-            o_index: int = index_to_position(out_index, out_strides)
             for j in range(a_shape[reduce_dim]):
                 a_index: Index = out_index.copy()
+                # Set the index of the reduce_dim to j to get the data from a
                 a_index[reduce_dim] = j
                 a_data: np.float64 = a_storage[index_to_position(a_index, a_strides)]
-                out[o_index] = fn(float(a_data), float(out[o_index]))
+                out[i] = fn(a_data, out[i])
 
     return _reduce
 

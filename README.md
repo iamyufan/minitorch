@@ -1,7 +1,7 @@
-# miniTorch
+# Module 3: Efficiency
 
 <img src="https://minitorch.github.io/minitorch.svg" width="50%">
 
-## Assignment Answers
+<!-- ## Assignment Answers
 
-Find my answers to the assignment [here](./Assignment.md).
+Find my answers to the assignment [here](./Assignment.md). -->

@@ -6,7 +6,6 @@ import numpy as np
 from numba import njit, prange
 
 from .tensor_data import (
-    # MAX_DIMS,
     broadcast_index,
     index_to_position,
     shape_broadcast,
@@ -160,26 +159,26 @@ def tensor_map(
         in_strides: Strides,
     ) -> None:
         # TODO: Implement for Task 3.1.
-        # If `out` and `in` are stride-aligned, avoid indexing.
+        # When `out` and `in` are stride-aligned, avoid indexing
         if np.array_equal(out_strides, in_strides) and np.array_equal(
             out_shape, in_shape
         ):
             for i in prange(len(out)):
                 out[i] = fn(in_storage[i])
         else:
+            # Main loop in parallel
             for i in prange(len(out)):
                 # All indices use numpy buffers
-                out_index: Index = np.zeros_like(out_shape, dtype=np.int32)
-                in_index: Index = np.zeros_like(in_shape, dtype=np.int32)
-                # Find the index of the corresponding element in in and out
+                out_index = np.zeros_like(out_shape, dtype=np.int32)
+                in_index = np.zeros_like(in_shape, dtype=np.int32)
+                # The index of out[i]
                 to_index(i, out_shape, out_index)
+                # The corresponding index in in
                 broadcast_index(out_index, out_shape, in_shape, in_index)
-                # Get the data from in and apply fn to it
-                mapped_data: float = fn(
-                    in_storage[index_to_position(in_index, in_strides)]
-                )
+                # Calculate the mapped value of in[i]
+                mapped_data = fn(in_storage[index_to_position(in_index, in_strides)])
                 # Put the mapped data into out
-                out[index_to_position(out_index, out_strides)] = mapped_data
+                out[i] = mapped_data
 
     return njit(parallel=True)(_map)  # type: ignore
 
@@ -218,7 +217,7 @@ def tensor_zip(
         b_strides: Strides,
     ) -> None:
         # TODO: Implement for Task 3.1.
-        # If `out`, `a`, `b` are stride-aligned, avoid indexing.
+        # When `out`, `a`, `b` are stride-aligned, avoid indexing
         if (
             np.array_equal(out_strides, a_strides)
             and np.array_equal(out_strides, b_strides)
@@ -228,22 +227,24 @@ def tensor_zip(
             for i in prange(len(out)):
                 out[i] = fn(a_storage[i], b_storage[i])
         else:
+            # Main loop in parallel
             for i in prange(len(out)):
                 # All indices use numpy buffers
                 out_index: Index = np.zeros_like(out_shape, dtype=np.int32)
                 a_index: Index = np.zeros_like(a_shape, dtype=np.int32)
                 b_index: Index = np.zeros_like(b_shape, dtype=np.int32)
-                # Find the index of the corresponding element in out, a, and b
+                # The index of out[i]
                 to_index(i, out_shape, out_index)
+                # The corresponding index in a and b
                 broadcast_index(out_index, out_shape, a_shape, a_index)
                 broadcast_index(out_index, out_shape, b_shape, b_index)
-                # Get the data from a and b and apply fn to it
-                zipped_data: float = fn(
+                # Calculate the zipped value of a[i] and b[i]
+                zipped_data = fn(
                     a_storage[index_to_position(a_index, a_strides)],
                     b_storage[index_to_position(b_index, b_strides)],
                 )
                 # Put the zipped data into out
-                out[index_to_position(out_index, out_strides)] = zipped_data
+                out[i] = zipped_data
 
     return njit(parallel=True)(_zip)  # type: ignore
 
@@ -277,18 +278,25 @@ def tensor_reduce(
         reduce_dim: int,
     ) -> None:
         # TODO: Implement for Task 3.1.
+        # Main loop in parallel
         for i in prange(len(out)):
             # All indices use numpy buffers
             out_index: Index = np.zeros_like(out_shape, dtype=np.int32)
-            # Find the index of the corresponding element in out
+            # The index of out[i]
             to_index(i, out_shape, out_index)
-            out_ordinal: int = index_to_position(out_index, out_strides)
-            # Find the index of the corresponding element in a
-            a_ordinal: int = index_to_position(out_index, a_strides)
-            start: float = out[out_ordinal]
+            # The starting position in a to be reduced
+            a_ordinal = index_to_position(out_index, a_strides)
+            # Initialize the reduced value of a[i]
+            reduced_val = out[i]
+            # Inner-loop should not call any functions or write non-local variables
             for j in prange(a_shape[reduce_dim]):
-                start = fn(start, a_storage[a_ordinal + j * a_strides[reduce_dim]])
-            out[out_ordinal] = start
+                # Calculate the reduced value of a[i]
+                reduced_val = fn(
+                    reduced_val,
+                    a_storage[a_ordinal + j * a_strides[reduce_dim]],
+                )
+            # Put the reduced data into out
+            out[i] = reduced_val
 
     return njit(parallel=True)(_reduce)  # type: ignore
 
@@ -342,13 +350,14 @@ def _tensor_matrix_multiply(
     N, I, J = out_shape[-3:]
     K = a_shape[-1]
     for n in prange(N):
-        for i in range(I):
-            for j in range(J):
-                for k in range(K):
-                    # Get the ordinal of out[n, i, j]
+        for i in prange(I):
+            for j in prange(J):
+                for k in prange(K):
+                    # The ordinal of out[n, i, j]
                     out_ordinal: int = (
                         n * out_strides[-3] + i * out_strides[-2] + j * out_strides[-1]
                     )
+                    # Calculate the value of out[n, i, j]
                     out[out_ordinal] += (
                         a_storage[
                             n * a_batch_stride + i * a_strides[-2] + k * a_strides[-1]

@@ -108,7 +108,7 @@ class Mul(Function):
         # TODO: Implement for Task 2.4.
         (a, b) = ctx.saved_values
         return (
-            grad_output.f.mul_zip(b, grad_output),
+            grad_output.f.mul_zip(grad_output, b),
             grad_output.f.mul_zip(a, grad_output),
         )
 
@@ -131,8 +131,8 @@ class Sigmoid(Function):
             grad_output.f.mul_zip(
                 sigmoid,
                 grad_output.f.add_zip(
-                    grad_output.f.neg_map(sigmoid),
                     tensor([1]),
+                    grad_output.f.neg_map(sigmoid),
                 ),
             ),
         )

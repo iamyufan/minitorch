@@ -23,9 +23,10 @@ def central_difference(f: Any, *vals: Any, arg: int = 0, epsilon: float = 1e-6) 
         An approximation of $f'_i(x_0, \ldots, x_{n-1})$
     """
     # TODO: Implement for Task 1.1.
+    # f(x + epsilon)
     x_vals_1: List[Any] = list(vals)
     x_vals_1[arg] = x_vals_1[arg] + epsilon
-
+    # f(x - epsilon)
     x_vals_2: List[Any] = list(vals)
     x_vals_2[arg] = x_vals_2[arg] - epsilon
 
@@ -97,6 +98,7 @@ def backpropagate(variable: Variable, deriv: Any) -> None:
     """
     # TODO: Implement for Task 1.4.
     ordered_vars: Iterable[Variable] = topological_sort(variable)
+    # Record the derivative of each variable
     derivatives: Dict[int, Any] = {var.unique_id: 0 for var in ordered_vars}
     derivatives[variable.unique_id] = deriv
 

@@ -31,7 +31,7 @@ def add(x: float, y: float) -> float:
 def neg(x: float) -> float:
     "$f(x) = -x$"
     # TODO: Implement for Task 0.1.
-    return (-1.0) * x
+    return -x
 
 
 def lt(x: float, y: float) -> float:
@@ -55,7 +55,6 @@ def max(x: float, y: float) -> float:
 def is_close(x: float, y: float) -> float:
     "$f(x) = |x - y| < 1e-2$"
     # TODO: Implement for Task 0.1.
-    # return lt(abs(x - y), 1e-2)
     return abs(x - y) < 1e-2
 
 
@@ -85,7 +84,7 @@ def relu(x: float) -> float:
     (See https://en.wikipedia.org/wiki/Rectifier_(neural_networks) .)
     """
     # TODO: Implement for Task 0.1.
-    return x if x > 0.0 else 0.0
+    return x if x > 0 else 0.0
 
 
 EPS = 1e-6
@@ -93,10 +92,7 @@ EPS = 1e-6
 
 def log(x: float) -> float:
     "$f(x) = log(x)$"
-    if x < 0:
-        return 0.0
-    else:
-        return math.log(x + EPS)
+    return math.log(x + EPS)
 
 
 def exp(x: float) -> float:
@@ -107,10 +103,8 @@ def exp(x: float) -> float:
 def log_back(x: float, d: float) -> float:
     r"If $f = log$ as above, compute $d \times f'(x)$"
     # TODO: Implement for Task 0.1.
-    if x < 0:
-        return 0.0
-    else:
-        return d / (x + EPS)
+    # return d * (exp(x))
+    return d / (x + EPS)
 
 
 def inv(x: float) -> float:
@@ -122,13 +116,14 @@ def inv(x: float) -> float:
 def inv_back(x: float, d: float) -> float:
     r"If $f(x) = 1/x$ compute $d \times f'(x)$"
     # TODO: Implement for Task 0.1.
-    return (-1.0) * d / (x * x)
+    # return d * (1.0 / x)
+    return -d / (x * x)
 
 
 def relu_back(x: float, d: float) -> float:
     r"If $f = relu$ compute $d \times f'(x)$"
     # TODO: Implement for Task 0.1.
-    return d if x > 0 else 0.0
+    return d if x > 0 else 0
 
 
 # ## Task 0.3
@@ -181,12 +176,10 @@ def zipWith(
     """
 
     # TODO: Implement for Task 0.3.
-    def zipper(
-        iterable1: Iterable[float], iterable2: Iterable[float]
-    ) -> Iterable[float]:
-        return [fn(item1, item2) for item1, item2 in zip(iterable1, iterable2)]
+    def mapper(ls1: Iterable[float], ls2: Iterable[float]) -> Iterable[float]:
+        return [fn(x, y) for x, y in zip(ls1, ls2)]
 
-    return zipper
+    return mapper
 
 
 def addLists(ls1: Iterable[float], ls2: Iterable[float]) -> Iterable[float]:
@@ -212,9 +205,9 @@ def reduce(
     """
 
     # TODO: Implement for Task 0.3.
-    def reducer(iterable: Iterable[float]) -> float:
+    def reducer(ls: Iterable[float]) -> float:
         result = start
-        for item in iterable:
+        for item in ls:
             result = fn(item, result)
         return result
 

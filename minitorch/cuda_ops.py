@@ -160,7 +160,6 @@ def tensor_map(
             in_ordinal = index_to_position(in_index, in_strides)
             out_ordinal = index_to_position(out_index, out_strides)
             out[out_ordinal] = fn(in_storage[in_ordinal])
-        # raise NotImplementedError("Need to implement for Task 3.3")
 
     return cuda.jit()(_map)  # type: ignore
 
@@ -209,7 +208,6 @@ def tensor_zip(
             a_ordinal = index_to_position(a_index, a_strides)
             b_ordinal = index_to_position(b_index, b_strides)
             out[out_ordinal] = fn(a_storage[a_ordinal], b_storage[b_ordinal])
-        # raise NotImplementedError("Need to implement for Task 3.3")
 
     return cuda.jit()(_zip)  # type: ignore
 
@@ -374,7 +372,6 @@ def _mm_practice(out: Storage, a: Storage, b: Storage, size: int) -> None:
         for k in range(size):
             acc += a_shared[local_i, k] * b_shared[k, local_j]
         out[i * size + j] = acc
-    # raise NotImplementedError("Need to implement for Task 3.3")
 
 
 jit_mm_practice = cuda.jit()(_mm_practice)
@@ -444,7 +441,6 @@ def _tensor_matrix_multiply(
     #    b) Copy into shared memory for b matrix
     #    c) Compute the dot produce for position c[i, j]
     # TODO: Implement for Task 3.4.
-    # Documentation:
     # 1. Get sizes of matrixs for further operations
     # a (batch_a, I, K) * b (batch_b, K, J)
     # out[n, i, j] = sum_k a[n_a, i, k] * b[n_b, k, j]
@@ -453,7 +449,7 @@ def _tensor_matrix_multiply(
     # 2. For out[i, j], the shared memory needs blocks which contain a[i, ...] and b[..., j]
     # iterate to copy into shared memory
     for s in range(0, K, BLOCK_DIM):
-        # 3. while copying, make sure copy values in matrixs
+        # 3. while copying, make sure copy values in matrices
         a_k = s + pj
         # build guards individually for a and b because their sizes might be different
         if i < I and a_k < K:
