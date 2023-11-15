@@ -45,8 +45,8 @@ def index_to_position(index: Index, strides: Strides) -> int:
 
     # TODO: Implement for Task 2.1.
     pos: int = 0
-    for i, val in enumerate(index):
-        pos += val * strides[i]
+    for ind, stride in zip(index, strides):
+        pos += ind * stride
     return pos
 
 
@@ -66,8 +66,9 @@ def to_index(ordinal: int, shape: Shape, out_index: OutIndex) -> None:
     # TODO: Implement for Task 2.1.
     cur_orf: int = ordinal + 0
     for i in range(len(shape) - 1, -1, -1):
-        out_index[i] = cur_orf % shape[i]
-        cur_orf //= shape[i]
+        cur_shape: int = shape[i]
+        out_index[i] = int(cur_orf % cur_shape)
+        cur_orf = cur_orf // cur_shape
 
 
 def broadcast_index(
@@ -92,7 +93,7 @@ def broadcast_index(
     # TODO: Implement for Task 2.2.
     dim_diff: int = len(big_shape) - len(shape)
     for i, val in enumerate(shape):
-        out_index[i] = 0 if val == 1 else big_index[i + dim_diff]
+        out_index[i] = big_index[i + dim_diff] if val > 1 else 0
 
 
 def shape_broadcast(shape1: UserShape, shape2: UserShape) -> UserShape:
@@ -110,25 +111,23 @@ def shape_broadcast(shape1: UserShape, shape2: UserShape) -> UserShape:
         IndexingError : if cannot broadcast
     """
     # TODO: Implement for Task 2.2.
-    # Rule 3: extra dimensions of 1 can be implicitly added to the left of the shape.
-    if len(shape1) > len(shape2):
-        shape2 = [1 for _ in range(len(shape1) - len(shape2))] + list(shape2)
-    else:
-        shape1 = [1 for _ in range(len(shape2) - len(shape1))] + list(shape1)
-    # Now, shape1 and shape2 have the same dimension.
-    n_shape: List[int] = []
-    for i in range(len(shape1)):
-        if shape1[i] != shape2[i]:
-            # Rule 1: dimension of size 1 broadcasts with anything
-            if shape1[i] == 1:
-                n_shape.append(shape2[i])
-            elif shape2[i] == 1:
-                n_shape.append(shape1[i])
-            else:
-                raise IndexingError(f"Cannot broadcast {shape1} and {shape2}.")
+    max_dim: int = max(len(shape1), len(shape2))
+    union_shape: List[int] = [0] * max_dim
+    shape1_rev: List[int] = list(reversed(shape1))
+    shape2_rev: List[int] = list(reversed(shape2))
+    for dim in range(max_dim):
+        if dim >= len(shape1):
+            union_shape[dim] = shape2_rev[dim]
+        elif dim >= len(shape2):
+            union_shape[dim] = shape1_rev[dim]
         else:
-            n_shape.append(shape1[i])
-    return tuple(n_shape)
+            union_shape[dim] = max(shape1_rev[dim], shape2_rev[dim])
+            if (shape1_rev[dim] != union_shape[dim] and shape1_rev[dim] != 1) or (
+                shape2_rev[dim] != union_shape[dim] and shape2_rev[dim] != 1
+            ):
+                raise IndexingError(f"Broadcast failure {shape1} {shape2}")
+
+    return tuple(reversed(union_shape))
 
 
 def strides_from_shape(shape: UserShape) -> UserStrides:
@@ -251,8 +250,8 @@ class TensorData:
         # TODO: Implement for Task 2.1.
         return TensorData(
             storage=self._storage,
-            shape=tuple(self.shape[i] for i in order),
-            strides=tuple(self._strides[i] for i in order),
+            shape=tuple([self.shape[i] for i in order]),
+            strides=tuple([self._strides[i] for i in order]),
         )
 
     def to_string(self) -> str:

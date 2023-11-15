@@ -6,6 +6,7 @@ import numpy as np
 from numba import njit, prange
 
 from .tensor_data import (
+    MAX_DIMS,
     broadcast_index,
     index_to_position,
     shape_broadcast,
@@ -159,18 +160,21 @@ def tensor_map(
         in_strides: Strides,
     ) -> None:
         # TODO: Implement for Task 3.1.
+        out_size: int = len(out)
         # When `out` and `in` are stride-aligned, avoid indexing
         if np.array_equal(out_strides, in_strides) and np.array_equal(
             out_shape, in_shape
         ):
-            for i in prange(len(out)):
+            for i in prange(out_size):
                 out[i] = fn(in_storage[i])
         else:
             # Main loop in parallel
-            for i in prange(len(out)):
+            for i in prange(out_size):
                 # All indices use numpy buffers
-                out_index = np.zeros_like(out_shape, dtype=np.int32)
-                in_index = np.zeros_like(in_shape, dtype=np.int32)
+                # out_index = np.zeros_like(out_shape, dtype=np.int32)
+                out_index = np.zeros(MAX_DIMS, dtype=np.int32)
+                # in_index = np.zeros_like(in_shape, dtype=np.int32)
+                in_index = np.zeros(MAX_DIMS, dtype=np.int32)
                 # The index of out[i]
                 to_index(i, out_shape, out_index)
                 # The corresponding index in in
@@ -217,6 +221,7 @@ def tensor_zip(
         b_strides: Strides,
     ) -> None:
         # TODO: Implement for Task 3.1.
+        out_size: int = len(out)
         # When `out`, `a`, `b` are stride-aligned, avoid indexing
         if (
             np.array_equal(out_strides, a_strides)
@@ -224,15 +229,18 @@ def tensor_zip(
             and np.array_equal(out_shape, a_shape)
             and np.array_equal(out_shape, b_shape)
         ):
-            for i in prange(len(out)):
+            for i in prange(out_size):
                 out[i] = fn(a_storage[i], b_storage[i])
         else:
             # Main loop in parallel
-            for i in prange(len(out)):
+            for i in prange(out_size):
                 # All indices use numpy buffers
-                out_index: Index = np.zeros_like(out_shape, dtype=np.int32)
-                a_index: Index = np.zeros_like(a_shape, dtype=np.int32)
-                b_index: Index = np.zeros_like(b_shape, dtype=np.int32)
+                # out_index: Index = np.zeros_like(out_shape, dtype=np.int32)
+                out_index: Index = np.zeros(MAX_DIMS, dtype=np.int32)
+                # a_index: Index = np.zeros_like(a_shape, dtype=np.int32)
+                a_index: Index = np.zeros(MAX_DIMS, dtype=np.int32)
+                # b_index: Index = np.zeros_like(b_shape, dtype=np.int32)
+                b_index: Index = np.zeros(MAX_DIMS, dtype=np.int32)
                 # The index of out[i]
                 to_index(i, out_shape, out_index)
                 # The corresponding index in a and b
@@ -278,10 +286,13 @@ def tensor_reduce(
         reduce_dim: int,
     ) -> None:
         # TODO: Implement for Task 3.1.
+        out_size: int = len(out)
+        reduce_size: int = a_shape[reduce_dim]
         # Main loop in parallel
-        for i in prange(len(out)):
+        for i in prange(out_size):
             # All indices use numpy buffers
-            out_index: Index = np.zeros_like(out_shape, dtype=np.int32)
+            # out_index: Index = np.zeros_like(out_shape, dtype=np.int32)
+            out_index: Index = np.zeros(MAX_DIMS, dtype=np.int32)
             # The index of out[i]
             to_index(i, out_shape, out_index)
             # The starting position in a to be reduced
@@ -289,7 +300,7 @@ def tensor_reduce(
             # Initialize the reduced value of a[i]
             reduced_val = out[i]
             # Inner-loop should not call any functions or write non-local variables
-            for j in prange(a_shape[reduce_dim]):
+            for j in range(reduce_size):
                 # Calculate the reduced value of a[i]
                 reduced_val = fn(
                     reduced_val,
@@ -347,25 +358,22 @@ def _tensor_matrix_multiply(
 
     # TODO: Implement for Task 3.2.
     # out[n, i, j] = \Sum_k {a[n, i, k] * b[n, k, j]}
+    K = a_shape[-1]  # This is equal to b_shape[-2]
     N, I, J = out_shape[-3:]
-    K = a_shape[-1]
     for n in prange(N):
         for i in prange(I):
             for j in prange(J):
-                for k in prange(K):
-                    # The ordinal of out[n, i, j]
-                    out_ordinal: int = (
-                        n * out_strides[-3] + i * out_strides[-2] + j * out_strides[-1]
-                    )
-                    # Calculate the value of out[n, i, j]
-                    out[out_ordinal] += (
-                        a_storage[
-                            n * a_batch_stride + i * a_strides[-2] + k * a_strides[-1]
-                        ]
-                        * b_storage[
-                            n * b_batch_stride + k * b_strides[-2] + j * b_strides[-1]
-                        ]
-                    )
+                sum_val: float = 0.0
+                a_ordinal: int = n * a_batch_stride + i * a_strides[-2]
+                b_ordinal: int = n * b_batch_stride + j * b_strides[-1]
+                for _ in range(K):
+                    sum_val += a_storage[a_ordinal] * b_storage[b_ordinal]  # 1 multiply
+                    a_ordinal += a_strides[-1]
+                    b_ordinal += b_strides[-2]
+                out_ordinal = (
+                    n * out_strides[-3] + i * out_strides[-2] + j * out_strides[-1]
+                )
+                out[out_ordinal] = sum_val
 
 
 tensor_matrix_multiply = njit(parallel=True, fastmath=True)(_tensor_matrix_multiply)

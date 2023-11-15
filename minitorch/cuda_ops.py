@@ -155,10 +155,9 @@ def tensor_map(
         # TODO: Implement for Task 3.3.
         if i < out_size:
             to_index(i, out_shape, out_index)
-            broadcast_index(out_index, out_shape, in_shape, in_index)
+            out_ordinal = index_to_position(out_index, out_strides)
             broadcast_index(out_index, out_shape, in_shape, in_index)
             in_ordinal = index_to_position(in_index, in_strides)
-            out_ordinal = index_to_position(out_index, out_strides)
             out[out_ordinal] = fn(in_storage[in_ordinal])
 
     return cuda.jit()(_map)  # type: ignore
@@ -202,10 +201,10 @@ def tensor_zip(
         # TODO: Implement for Task 3.3.
         if i < out_size:
             to_index(i, out_shape, out_index)
-            broadcast_index(out_index, out_shape, a_shape, a_index)
-            broadcast_index(out_index, out_shape, b_shape, b_index)
             out_ordinal = index_to_position(out_index, out_strides)
+            broadcast_index(out_index, out_shape, a_shape, a_index)
             a_ordinal = index_to_position(a_index, a_strides)
+            broadcast_index(out_index, out_shape, b_shape, b_index)
             b_ordinal = index_to_position(b_index, b_strides)
             out[out_ordinal] = fn(a_storage[a_ordinal], b_storage[b_ordinal])
 
@@ -240,22 +239,23 @@ def _sum_practice(out: Storage, a: Storage, size: int) -> None:
     pos = cuda.threadIdx.x
 
     # TODO: Implement for Task 3.3.
-    block_i = cuda.blockIdx.x
-    if i < size:
-        cache[pos] = a[i]
+    # Copy to shared memory
+    if i >= size:
+        cache[pos] = 0
     else:
-        cache[pos] = 0.0
+        cache[pos] = a[i]
     cuda.syncthreads()
+
     if i < size:
-        n = 1
-        while n < BLOCK_DIM:
-            if pos % (2 * n) == 0:
-                cache[pos] += cache[pos + n]
+        z = 2
+        for _ in range(5):
+            if (pos % z) == 0:
+                cache[pos] += cache[pos + int(z / 2)]
                 cuda.syncthreads()
-            n *= 2
-    # for each block, sum up to out
-    if pos == 0:
-        out[block_i] = cache[0]
+            z *= 2
+        if pos == 0:
+            y = cuda.blockIdx.x
+            out[y] = cache[0]
 
 
 jit_sum_practice = cuda.jit()(_sum_practice)
@@ -309,11 +309,13 @@ def tensor_reduce(
         if out_pos < out_size:
             to_index(out_pos, out_shape, out_index)
             out_ordinal = index_to_position(out_index, out_strides)
-            out_index[reduce_dim] = out_index[reduce_dim] * BLOCK_DIM + cuda.threadIdx.x
-            a_ordinal = index_to_position(out_index, a_strides)
-            if out_index[reduce_dim] < a_shape[reduce_dim]:
+            new_o = pos + out_index[reduce_dim] * BLOCK_DIM
+            out_index[reduce_dim] = new_o
+            if new_o < a_shape[reduce_dim]:
+                a_ordinal = index_to_position(out_index, a_strides)
                 cache[pos] = a_storage[a_ordinal]
                 cuda.syncthreads()
+
                 n = 1
                 while n < BLOCK_DIM:
                     if pos % (2 * n) == 0:
@@ -358,20 +360,19 @@ def _mm_practice(out: Storage, a: Storage, b: Storage, size: int) -> None:
     """
     BLOCK_DIM = 32
     # TODO: Implement for Task 3.3.
-    a_shared = cuda.shared.array((BLOCK_DIM, BLOCK_DIM), numba.float64)
-    b_shared = cuda.shared.array((BLOCK_DIM, BLOCK_DIM), numba.float64)
-    i = cuda.blockIdx.x * cuda.blockDim.x + cuda.threadIdx.x
-    j = cuda.blockIdx.y * cuda.blockDim.y + cuda.threadIdx.y
-    local_i = cuda.threadIdx.x
-    local_j = cuda.threadIdx.y
-    if i >= 0 and i < size and j >= 0 and j < size:
-        a_shared[local_i, local_j] = a[i * size + j]
-        b_shared[local_i, local_j] = b[i * size + j]
+    shared_a = cuda.shared.array((BLOCK_DIM, BLOCK_DIM), numba.float64)
+    shared_b = cuda.shared.array((BLOCK_DIM, BLOCK_DIM), numba.float64)
+
+    x_val = cuda.threadIdx.x
+    y_val = cuda.threadIdx.y
+    if x_val < size and y_val < size:
+        shared_a[x_val, y_val] = a[size * x_val + y_val]
+        shared_b[x_val, y_val] = b[size * x_val + y_val]
         cuda.syncthreads()
-        acc = 0.0
-        for k in range(size):
-            acc += a_shared[local_i, k] * b_shared[k, local_j]
-        out[i * size + j] = acc
+        output = 0.0
+        for i in range(size):
+            output += shared_a[x_val, i] * shared_b[i, y_val]
+        out[size * x_val + y_val] = output
 
 
 jit_mm_practice = cuda.jit()(_mm_practice)
