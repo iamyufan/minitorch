@@ -55,7 +55,8 @@ def max(x: float, y: float) -> float:
 def is_close(x: float, y: float) -> float:
     "$f(x) = |x - y| < 1e-2$"
     # TODO: Implement for Task 0.1.
-    return lt(abs(x - y), 1e-2)
+    return (x - y < 1e-2) and (y - x < 1e-2)
+    # return abs(x - y) < 1e-2
 
 
 def sigmoid(x: float) -> float:
@@ -72,9 +73,9 @@ def sigmoid(x: float) -> float:
     """
     # TODO: Implement for Task 0.1.
     if x >= 0:
-        return 1.0 / (1.0 + exp(-x))
+        return 1.0 / (1.0 + math.exp(-x))
     else:
-        return math.exp(x) / (1.0 + exp(x))
+        return math.exp(x) / (1.0 + math.exp(x))
 
 
 def relu(x: float) -> float:
@@ -103,6 +104,7 @@ def exp(x: float) -> float:
 def log_back(x: float, d: float) -> float:
     r"If $f = log$ as above, compute $d \times f'(x)$"
     # TODO: Implement for Task 0.1.
+    # return d * (exp(x))
     return d / (x + EPS)
 
 
@@ -115,7 +117,8 @@ def inv(x: float) -> float:
 def inv_back(x: float, d: float) -> float:
     r"If $f(x) = 1/x$ compute $d \times f'(x)$"
     # TODO: Implement for Task 0.1.
-    return -d / (x * x)
+    return -(1.0 / x**2) * d
+    # return -d / (x * x)
 
 
 def relu_back(x: float, d: float) -> float:
@@ -145,7 +148,11 @@ def map(fn: Callable[[float], float]) -> Callable[[Iterable[float]], Iterable[fl
 
     # TODO: Implement for Task 0.3.
     def mapper(iterable: Iterable[float]) -> Iterable[float]:
-        return [fn(item) for item in iterable]
+        # return [fn(item) for item in iterable]
+        result = []
+        for item in iterable:
+            result.append(fn(item))
+        return result
 
     return mapper
 
@@ -174,10 +181,12 @@ def zipWith(
     """
 
     # TODO: Implement for Task 0.3.
-    def zipper(
-        iterable1: Iterable[float], iterable2: Iterable[float]
-    ) -> Iterable[float]:
-        return [fn(item1, item2) for item1, item2 in zip(iterable1, iterable2)]
+    def zipper(ls1: Iterable[float], ls2: Iterable[float]) -> Iterable[float]:
+        result = []
+        for x, y in zip(ls1, ls2):
+            result.append(fn(x, y))
+        return result
+        # return [fn(x, y) for x, y in zip(ls1, ls2)]
 
     return zipper
 
@@ -205,9 +214,9 @@ def reduce(
     """
 
     # TODO: Implement for Task 0.3.
-    def reducer(iterable: Iterable[float]) -> float:
+    def reducer(ls: Iterable[float]) -> float:
         result = start
-        for item in iterable:
+        for item in ls:
             result = fn(item, result)
         return result
 
