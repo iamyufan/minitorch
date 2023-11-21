@@ -2236,6 +2236,22 @@ No allocation hoisting found
 None
 ````
 
+### Task 4: CUDA Matrix Multiplication
+
+Comparison of Matrix Multiplication Execution Time between `FastOps` and `CudaOps`:
+
+| Matrix Size (n x n) | FastOps Time (s) | CudaOps Time (s) |
+|---------------------|------------------|------------------|
+| 64                  | 0.00371          | 0.00642          |
+| 128                 | 0.01814          | 0.01659          |
+| 256                 | 0.09998          | 0.05484          |
+| 512                 | 0.99039          | 0.21646          |
+| 1024                | 9.05483          | 1.17544          |
+
+
+![comparison](./img/m3/comparison.png)
+
+
 ### Task 5: Training
 
 #### CPU
