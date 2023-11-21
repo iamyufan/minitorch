@@ -442,39 +442,37 @@ def _tensor_matrix_multiply(
     #    b) Copy into shared memory for b matrix
     #    c) Compute the dot produce for position c[i, j]
     # TODO: Implement for Task 3.4.
-    # 1. Get sizes of matrixs for further operations
+    # 1. Get the sizes of matrices, I, J, K
     # a (batch_a, I, K) * b (batch_b, K, J)
     # out[n, i, j] = sum_k a[n_a, i, k] * b[n_b, k, j]
     I, J, K = out_shape[1], out_shape[2], a_shape[-1]
-    acc = 0.0
-    # 2. For out[i, j], the shared memory needs blocks which contain a[i, ...] and b[..., j]
-    # iterate to copy into shared memory
-    for s in range(0, K, BLOCK_DIM):
-        # 3. while copying, make sure copy values in matrices
-        a_k = s + pj
-        # build guards individually for a and b because their sizes might be different
+    acc = 0.0  # accumulator
+    # 2. To calculate out[i, j], we need a[i, ...] and b[..., j]
+    # Thus, each thread needs to copy one row of a and one column of b
+    for start in range(0, K, BLOCK_DIM):  # start is the starting index of the block
+        # build guards to make sure we don't copy values out of bounds
+        a_k = start + pj
+        # copy a[i, start + pj] to a_shared[pi, pj]
         if i < I and a_k < K:
             a_shared[pi, pj] = a_storage[
                 batch * a_batch_stride + i * a_strides[1] + a_k * a_strides[2]
             ]
-        b_k = s + pi
+        b_k = start + pi
+        # copy b[start + pi, j] to b_shared[pi, pj]
         if b_k < K and j < J:
             b_shared[pi, pj] = b_storage[
                 batch * b_batch_stride + b_k * b_strides[1] + j * b_strides[2]
             ]
-        # after copying, syncronize them
+        # synchronize the threads
         cuda.syncthreads()
-        # 3. everytime after copying blocks from a and b, add dot products to acc
+        # 3. After copying, calculate dot product of the two blocks and add to acc
+        # build a guard to make sure we don't use values out of bounds
         for k in range(BLOCK_DIM):
-            # also make sure only use values within K, because when size doesn't fit
-            # the shared blocks might have values copied from previous iterations
-            # we don't want to use that so don't go over guards
-            if s + k < K:
+            if start + k < K:
                 acc += a_shared[pi, k] * b_shared[k, pj]
-    # 4. copy to out
-    # we actually have more that I * J threads working, they can be out of bounds
-    # some thread(out of bounds) still works for us to calculate dot product
-    # but they shouldn't be used to copy final result to out
+    # 4. Copy acc to out[i, j]
+    # Note: the number of threads is not necessarily equal to the number of elements in out
+    # we need to use guard to make sure we don't copy values out of bounds
     if i < I and j < J:
         out[batch * out_strides[0] + i * out_strides[1] + j * out_strides[2]] = acc
 
