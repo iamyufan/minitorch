@@ -2731,3 +2731,13 @@ Comparison of Matrix Multiplication Execution Time between `FastOps` and `CudaOp
    Epoch: 480 	 loss: 0.29106941668242475 	 correct: 50 	 time: 2.136246109008789
    Epoch: 490 	 loss: 0.45173028212770416 	 correct: 50 	 time: 2.3403259038925173
    ```
+
+## Module 4 Networks: Training an Image Classifier
+
+### Sentiment (SST2)
+
+See [`sentiment.txt`](sentiment.txt) for the logs of the training process.
+
+### Digit classification (MNIST)
+
+See [`mnist.txt`](mnist.txt) for the logs of the training process.
