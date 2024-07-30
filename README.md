@@ -2,7 +2,9 @@
 
 <img src="https://minitorch.github.io/minitorch.svg" width="50%">
 
-Visit [yufanbruce.com/project/minitorch](https://yufanbruce.com/project/minitorch/) to take a closer look.
+Visit [yufanbruce.com/project/minitorch](https://yufanbruce.com/project/minitorch) to take a closer look.
+
+
 
 ## Assignment Answers
 
